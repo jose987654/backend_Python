@@ -1,0 +1,34 @@
+# google-ads.yaml
+
+# Developer token
+developer_token: "IsyGE1YYc-Htw_0HFk9Crw"
+
+# OAuth2 configuration
+client_id: 917854844662-kib0uct1qgpmqci7od6dusa3rbvjphn7.apps.googleusercontent.com
+client_secret: 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
+refresh_token: 1//03mxUeqzp8B9kCgYIARAAGAMSNwF-L9IrIOKM3fc7iROjmoJJzeB60YozJ25PHXCvSv2_Kgwq7Zu3HQ9uTINVoZW5Rx1GaikJKsk
+use_proto_plus: true
+
+# Login customer ID configuration
+login_customer_id: "7555200574"
+
+# Scopes
+scopes:
+  - "https://www.googleapis.com/auth/adwords"
+
+# Logging configuration (optional)
+# logging:
+#   version: 1
+#   disable_existing_loggers: False
+#   formatters:
+#     default_fmt:
+#       format: '[%(asctime)s - %(levelname)s] %(message).5000s'
+#       datefmt: '%Y-%m-%d %H:%M:%S'
+#   handlers:
+#     default_handler:
+#       class: logging.StreamHandler
+#       formatter: default_fmt
+#   loggers:
+#     "":
+#       handlers: [default_handler]
+#       level: INFO
