@@ -11,7 +11,7 @@ from apscheduler.triggers.cron import CronTrigger
 import subprocess
 from google.ads.googleads.client import GoogleAdsClient
 from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
-from Email_clients import get_emails_json, delete_email,add_email_updated, delete_all_emails,delete_email_updated, update_email, add_emails,write_recipient_emails,read_recipient_emails
+from Email_clients import get_emails_json, delete_email,add_email_updated, delete_all_emails,delete_email_updated, update_email, add_emails,write_recipient_emails,read_recipient_emails,update_email_status_add,update_email_status_remove
 import datetime
 import os
 
@@ -20,19 +20,9 @@ from flask_cors import CORS
 from concurrent.futures import ThreadPoolExecutor
 from signup import login_and_generate_token,signup_and_write_to_file,verify_jwt_token,refresh_access_token,revoke_tokens,verify_tokens,reset_password
 
-logs_file = "./app_logs"
-script_directory = os.path.dirname(os.path.abspath(__file__))
-
-
-
 app = Flask(__name__)
 # CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 CORS(app)
-log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
-log_handler = RotatingFileHandler('app_logs.log', maxBytes=10000, backupCount=1)
-log_handler.setFormatter(log_formatter)
-app.logger.addHandler(log_handler)
-app.logger.setLevel(logging.INFO)
 
 # Set up a logger for the application
 app_logger = logging.getLogger(__name__)
@@ -41,6 +31,16 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 app_logger.addHandler(handler)
+
+logs_folder = "./app_logs"
+script_directory = os.path.dirname(os.path.abspath(__file__))
+log_Folder = os.path.abspath(os.path.join(script_directory, logs_folder))
+os.makedirs(log_Folder, exist_ok=True)
+
+# Configure logging for file
+# file_log_handler = RotatingFileHandler(log_Folder, maxBytes=10000, backupCount=1)
+# file_log_handler.setFormatter(formatter)
+# app_logger.addHandler(file_log_handler)
 
 scheduler = BackgroundScheduler()
 current_interval = {"interval_seconds": 10000 * 60}
@@ -141,6 +141,21 @@ def fetch_search_console_data_route():
     search_console_data = fetch_search_console_data(search_console_service)
     return jsonify(search_console_data)
 
+@app.route('/log_request', methods=['POST'])
+def log_request():
+    data = request.get_json()
+    app.logger.info(f"Request received: {data}")
+    return jsonify({'message': 'Request logged successfully'}), 200
+
+@app.route('/get_logs', methods=['GET'])
+def get_logs():
+    try:
+        with open(log_Folder, 'r') as log_file:
+            logs = log_file.read()
+        return logs
+    except FileNotFoundError:
+        return "Log file not found", 404
+
 @app.route('/status', methods=['GET'])
 @authenticate
 def check_token_status():
@@ -220,10 +235,34 @@ def add_multiple_emails():
     else:
         return jsonify({"error": "Missing 'new_emails' parameter"}), 400
 
+@app.route('/add_Email_status', methods=['POST'])
+@authenticate
+def update_email_Add():
+    data = request.get_json()
+    email_to_add = data.get('email', None)
+
+    if email_to_add:
+        added = update_email_status_add(email_to_add)
+        return jsonify({"added": added})
+    else:
+        return jsonify({"error": "Missing 'email' parameter"}), 400
+    
+@app.route('/del_Email_status', methods=['POST'])
+@authenticate
+def update_email_Remove():
+    data = request.get_json()
+    email_to_del = data.get('email', None)
+
+    if email_to_del:
+        deleted = update_email_status_remove(email_to_del)
+        return jsonify({"deleted": deleted})
+    else:
+        return jsonify({"error": "Missing 'email' parameter"}), 400
+
 @app.route('/get_scheduler_interval', methods=['GET'])
 def get_scheduler_interval():
     # global current_interval
-    # threads = enumerate()
+    # threads = enumerate()  
     # for thread in threads:
     #     print(f"Thread Name: {thread.name}, Thread ID: {thread.ident}")
     # running_jobs = get_running_jobs()

@@ -21,13 +21,16 @@ all_recipients, recipient_emails = read_recipient_emails()
 def get_emails_json():
     all_recipients, recipient_emails = read_recipient_emails()
     recipient_data = []
+    
     for recipient in all_recipients:
+        list_status = recipient.get("status", False)
         recipient_data.append({
             "id": recipient.get("id"),
             "email": recipient.get("email"),
             "role": recipient.get("role"),
             "first_name": recipient.get("first_name"),
             "last_name": recipient.get("last_name"),
+            "list_status": list_status if list_status else False,
             # Add other fields as needed
         })
     return json.dumps({"emails": recipient_emails,"all_recipients": recipient_data})
@@ -129,6 +132,40 @@ def update_email(old_email, new_email):
     for entry in all_recipients:
         if entry['email'] == old_email:
             entry['email'] = new_email
+
+    write_recipient_emails(all_recipients)
+    return True
+
+def add_recipient(new_user):
+    all_recipients, _ = read_recipient_emails()
+
+    # Check if the email is not already in the list
+    if new_user['email'] not in [entry['email'] for entry in all_recipients]:
+        all_recipients.append({
+            'email': new_user['email'],
+            'status': new_user.get('status', True),  # Default to True if not provided
+        })
+
+        # Save the updated list to the JSON file
+        with open(JSON_FILE_PATH, 'w') as file:
+            json.dump(all_recipients, file, indent=2)
+
+def update_email_status_add(email):
+    all_recipients, recipient_emails = read_recipient_emails()
+
+    for entry in all_recipients:
+        if entry['email'] == email:
+            entry['status'] = True
+
+    write_recipient_emails(all_recipients)
+    return True
+
+def update_email_status_remove(email):
+    all_recipients, recipient_emails = read_recipient_emails()
+
+    for entry in all_recipients:
+        if entry['email'] == email:
+            entry['status'] = False
 
     write_recipient_emails(all_recipients)
     return True

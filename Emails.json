@@ -6,7 +6,8 @@
     "email": "wasswajose989@gmail.com",
     "role": "user",
     "password": "$2b$12$kKBnS37iX6NZJKqnhqe.nuciIvdnrY24sUCqZOpT8w9.GjMoZK9PO",
-    "active": true
+    "active": true,
+    "status": false
   },
   {
     "id": 2,

@@ -10,7 +10,7 @@ from google.ads.googleads.client import GoogleAdsClient
 from email.mime.text import MIMEText
 from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
 import concurrent.futures
-from Email_clients import recipient_emails
+from Email_clients import recipient_emails,all_recipients
 # recipient_emails =  ["wasswajose9@gmail.com", "wasswajose9999@gmail.com","jacobtusiime6@gmail.com"]    
 
 def setup_search_console_api(client_secrets_file):
@@ -104,6 +104,19 @@ def send_report_email(site_info, search_analytics_data):
 
 def send_report_email_2(site_info, search_analytics_data,campaign_data):
    
+   for entry in all_recipients:
+    if 'status' not in entry:
+        entry['status'] = False
+
+    # Now, use the list comprehension to get active recipient emails
+    active_recipient_emails = [
+        entry['email'] for entry in all_recipients if entry.get('status', False) is True
+    ]
+
+    # Check if there are active recipients
+    if not active_recipient_emails:
+        print("No active recipients to send the email to.")
+        return
     # print("sending email ")
     # print("Email body ",site_info, search_analytics_data)
     email_content = f"Search Console Report\n\nSite URL: {site_info['siteUrl']}\n\nSearch Analytics Data: {search_analytics_data}\n\nCampaign Data :{campaign_data}"
@@ -118,12 +131,12 @@ def send_report_email_2(site_info, search_analytics_data,campaign_data):
     msg = MIMEText(email_content)
     msg['Subject'] = 'Search API Report'
     msg['From'] = smtp_username
-    msg['To'] = ', '.join(recipient_emails)
+    msg['To'] = ', '.join(active_recipient_emails)
 
     with smtplib.SMTP(smtp_server, smtp_port) as server:
         server.starttls()
         server.login(smtp_username, smtp_password)
-        server.sendmail(smtp_username, recipient_emails, msg.as_string())
+        server.sendmail(smtp_username, active_recipient_emails, msg.as_string())
 
 def schedule_report_email():
     

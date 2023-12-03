@@ -32,7 +32,7 @@ def signup_and_write_to_file(first_name,last_name,email, password):
                 "email": email,
                 "role": "user",
                 "password": hashed_password.decode('utf-8'),
-    "active": True
+    "active": True,"status":True
             }
             all_recipients.append(new_user)
             write_recipient_emails(all_recipients)
