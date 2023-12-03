@@ -21,8 +21,9 @@ from concurrent.futures import ThreadPoolExecutor
 from signup import login_and_generate_token,signup_and_write_to_file,verify_jwt_token,refresh_access_token,revoke_tokens,verify_tokens,reset_password
 
 app = Flask(__name__)
-# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 CORS(app)
+# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
 
 # Set up a logger for the application
 app_logger = logging.getLogger(__name__)
@@ -236,7 +237,7 @@ def add_multiple_emails():
         return jsonify({"error": "Missing 'new_emails' parameter"}), 400
 
 @app.route('/add_Email_status', methods=['POST'])
-@authenticate
+# @authenticate
 def update_email_Add():
     data = request.get_json()
     email_to_add = data.get('email', None)
@@ -248,7 +249,7 @@ def update_email_Add():
         return jsonify({"error": "Missing 'email' parameter"}), 400
     
 @app.route('/del_Email_status', methods=['POST'])
-@authenticate
+# @authenticate
 def update_email_Remove():
     data = request.get_json()
     email_to_del = data.get('email', None)

@@ -34,7 +34,8 @@
     "email": "1245@gmail.com",
     "role": "user",
     "password": "$2b$12$ziScC5RYw6NDtHARia7R9OCNKa7Yq2q4PHu/B8fFjP67JD5zwqYh2",
-    "active": false
+    "active": false,
+    "status": true
   },
   {
     "id": 5,

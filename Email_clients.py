@@ -158,7 +158,7 @@ def update_email_status_add(email):
             entry['status'] = True
 
     write_recipient_emails(all_recipients)
-    return True
+    return {"message": f"Email '{email}' added successfully."}
 
 def update_email_status_remove(email):
     all_recipients, recipient_emails = read_recipient_emails()
@@ -168,4 +168,4 @@ def update_email_status_remove(email):
             entry['status'] = False
 
     write_recipient_emails(all_recipients)
-    return True
+    return {"message": f"Email '{email}' deleted successfully."}
