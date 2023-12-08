@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from threading import Thread, current_thread, enumerate
 import logging
 from logging.handlers import RotatingFileHandler
-from Console_data import setup_search_console_api, fetch_search_console_data, schedule_report_email
+from Console_data import setup_search_console_api, fetch_search_console_data, schedule_report_email,fetch_search_console_errors
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 from apscheduler.triggers import interval, cron
@@ -44,7 +44,7 @@ os.makedirs(log_Folder, exist_ok=True)
 # app_logger.addHandler(file_log_handler)
 
 scheduler = BackgroundScheduler()
-current_interval = {"interval_seconds": 10000 * 60}
+current_interval = {"interval_seconds": 1000 * 60}
 executor = ThreadPoolExecutor()
 all_recipients, recipient_emails = read_recipient_emails()
 # Set up the Google Search Console API client
@@ -141,6 +141,12 @@ def get_running_jobs():
 def fetch_search_console_data_route():
     search_console_data = fetch_search_console_data(search_console_service)
     return jsonify(search_console_data)
+
+@app.route('/error_data', methods=['GET'])
+# @authenticate
+def fetch_search_console_error_route():
+    search_error_data = fetch_search_console_errors(search_console_service)
+    return jsonify(search_error_data)
 
 @app.route('/log_request', methods=['POST'])
 def log_request():
@@ -373,7 +379,7 @@ def run_flask_app():
     # serve(app, host='0.0.0.0', port=5000)
 
 def run_scheduler():
-    global current_interval
+    # global current_interval
 
     # Schedule the report email with a trigger
     if 'interval_seconds' in current_interval:

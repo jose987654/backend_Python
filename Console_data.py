@@ -11,7 +11,6 @@ from email.mime.text import MIMEText
 from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
 import concurrent.futures
 from Email_clients import recipient_emails,all_recipients
-# recipient_emails =  ["wasswajose9@gmail.com", "wasswajose9999@gmail.com","jacobtusiime6@gmail.com"]    
 
 def setup_search_console_api(client_secrets_file):
     script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +27,7 @@ def setup_search_console_api(client_secrets_file):
 
 def fetch_search_console_data(webmasters_service):
     current_date = datetime.now().date()
-    start_date = (current_date - timedelta(days=20)).isoformat()
+    start_date = (current_date - timedelta(days=2000)).isoformat()
     end_date = current_date.isoformat()
 
     request = {
@@ -76,6 +75,42 @@ def get_site_errors(webmasters_service, site_url):
     except Exception as e:
         print(f"Error fetching site errors: {e}")
         return None
+
+def fetch_search_console_errors(webmasters_service):
+    current_date = datetime.now().date()
+    start_date = (current_date - timedelta(days=2000)).isoformat()
+    end_date = current_date.isoformat()
+
+    try:
+        # Fetch the list of sites
+        site_list = webmasters_service.sites().list().execute()
+
+        # Check if 'siteEntry' is present in the response
+        if 'siteEntry' in site_list:
+            sites = site_list['siteEntry']
+
+            for site in sites:
+                site_url = site['siteUrl']
+
+                # Make a request to fetch site errors
+                request = {
+                    'siteUrl': site_url,
+                    'startDate': start_date,
+                    'endDate': end_date,
+                    'dimensions': ['date']
+                }
+
+                errors_data = webmasters_service.urlcrawlerrorscounts().query(siteUrl=site_url, startDate=start_date, endDate=end_date, dimensions=['date']).execute()
+
+                # Process and print the errors data
+                print(f"Site: {site_url}")
+                print("Errors Data:", errors_data)
+                print("\n")
+        else:
+            print("No sites found in the response.")
+    
+    except Exception as e:
+        print(f"Error fetching search console errors: {e}")
 
 
 def send_report_email(site_info, search_analytics_data):
@@ -176,3 +211,8 @@ def schedule_report_email():
     #     scheduler.shutdown()
 
 
+# Usage example:
+# Assuming you already have a 'webmasters_service' object
+# Refer to the Google API Python client documentation for initializing the service.
+# https://developers.google.com/webmaster-tools/search-console-api-original/v3/quickstart
+# fetch_search_console_errors(webmasters_service)
