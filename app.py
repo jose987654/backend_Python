@@ -379,9 +379,11 @@ def run_flask_app():
     # serve(app, host='0.0.0.0', port=5000)
 
 def run_scheduler():
-    # global current_interval
-
-    # Schedule the report email with a trigger
+    global current_interval
+    # Schedule the report email with a cron trigger for every Friday at a specific time (e.g., 10:00 AM)
+    # cron_expression = '0 10 * * 5'  # Minute 0, hour 10, every day of the month, every month, only on Friday (day of week 5)
+    # scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(cron_expression))
+       
     if 'interval_seconds' in current_interval:
         scheduler.add_job(schedule_report_email, 'interval', seconds=current_interval['interval_seconds'])
     elif 'cron_expression' in current_interval:
