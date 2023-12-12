@@ -55,7 +55,7 @@ def fetch_search_console_data(webmasters_service):
         ).execute()
 
         # site_errors = get_site_errors(webmasters_service, site_url)
-
+        # print("search data",search_analytics_data)
         return {
             'site_list': site_list,
             'first_site': first_site,
@@ -78,7 +78,7 @@ def get_site_errors(webmasters_service, site_url):
 
 def fetch_search_console_errors(webmasters_service):
     current_date = datetime.now().date()
-    start_date = (current_date - timedelta(days=2000)).isoformat()
+    start_date = (current_date - timedelta(days=2)).isoformat()
     end_date = current_date.isoformat()
 
     try:
