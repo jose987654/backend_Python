@@ -5,10 +5,11 @@ import os
 
 refresh_secrets_file="./google-ads2.yaml"
 script_directory = os.path.dirname(os.path.abspath(__file__))
-# CLIENT_SECRETS_FILE = os.path.abspath(os.path.join(script_directory, client_secrets_file))
+# CLIENT_SECRETS_FILE = os.path.abspath(os.path.join(script_directory, client_secrets_file)) 876-272-5250
 REFRESH_TOKEN_FILE = os.path.abspath(os.path.join(script_directory, refresh_secrets_file))
 YAML_PATH = REFRESH_TOKEN_FILE
-CUSTOMER_ID = '9700671588'
+CUSTOMER_ID = '8762725250'
+# CUSTOMER_ID = '9700671588'
 
 def get_Campaigns(client, customer_id):
     ga_service = client.get_service("GoogleAdsService")
@@ -46,7 +47,7 @@ def get_Campaigns(client, customer_id):
             'campaigns': campaigns
         }
     else:
-        print(f"An error occurred: {ex}")
+        print(f"An error occurred:")
         return {'error': 'No campaigns found'}
         # sys.exit(1)
 

@@ -6,11 +6,13 @@ developer_token: "IsyGE1YYc-Htw_0HFk9Crw"
 # OAuth2 configuration
 client_id: 917854844662-kib0uct1qgpmqci7od6dusa3rbvjphn7.apps.googleusercontent.com
 client_secret: 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
-refresh_token: 1//03STYXsvtYlL4CgYIARAAGAMSNwF-L9Ir0OpEfIRiyLiBBBcHoNUtmEtV5WfgsvF4Qh7ScafNIeKBrIyS3pD6kwY1pSkVlUXXDI8
+refresh_token: 1//03mjbbhuBWI37CgYIARAAGAMSNwF-L9IrHAWmXqAmKLI1Ka7l-L2s0MvnfAbAaQg_aMCCXvcI-4Ocm6INyG0z40jMHLTYoJOXGcU
 use_proto_plus: true
 
-# Login customer ID configuration
-login_customer_id: "7555200574"
+# Login customer ID configuration 8762725250
+login_customer_id: "8762725250"
+
+# login_customer_id: "7555200574"
 
 # Scopes
 scopes:

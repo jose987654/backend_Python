@@ -48,7 +48,8 @@ current_interval = {"interval_seconds": 1000 * 60}
 executor = ThreadPoolExecutor()
 all_recipients, recipient_emails = read_recipient_emails()
 # Set up the Google Search Console API client
-search_console_service = setup_search_console_api("./local-env-404011-e776db327a1f.json")
+# search_console_service = setup_search_console_api("./local-env-404011-e776db327a1f.json")
+search_console_service = setup_search_console_api()
 # def get_current_interval():
 #     return current_interval
 

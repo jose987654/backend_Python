@@ -69,7 +69,7 @@ def main():
     )
 
     # Your API calls go here
-    customer_id = '495-308-3895'
+    customer_id = '8762725250'
     query = (
         f"SELECT campaign.id, campaign.name "
         f"FROM campaign WHERE campaign.status = 'ENABLED' "

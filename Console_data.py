@@ -6,24 +6,58 @@ from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import smtplib
+from google.oauth2.credentials import Credentials
 from google.ads.googleads.client import GoogleAdsClient
 from email.mime.text import MIMEText
 from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
 import concurrent.futures
 from Email_clients import recipient_emails,all_recipients
+from google.auth.transport.requests import Request
+from flask import Flask, jsonify, redirect, request, session, url_for
+from google_auth_oauthlib.flow import InstalledAppFlow
 
-def setup_search_console_api(client_secrets_file):
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    CLIENT_SECRETS_FILE = os.path.abspath(os.path.join(script_directory, client_secrets_file))
-    OAUTH_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly"
 
-    with open(CLIENT_SECRETS_FILE, 'r') as json_keyfile:
-        keyfile_dict = json.load(json_keyfile)
+# def setup_search_console_api(client_secrets_file):
+#     script_directory = os.path.dirname(os.path.abspath(__file__))
+#     CLIENT_SECRETS_FILE = os.path.abspath(os.path.join(script_directory, client_secrets_file))
+#     OAUTH_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly"
+#     with open(CLIENT_SECRETS_FILE, 'r') as json_keyfile:
+#         keyfile_dict = json.load(json_keyfile)
+#     credentials = service_account.Credentials.from_service_account_info(keyfile_dict, scopes=[OAUTH_SCOPE])
+#     webmasters_service = build('searchconsole', 'v1', credentials=credentials)
+#     return webmasters_service
+refresh_secrets_file="./client_secret_917854844662-kib0uct1qgpmqci7od6dusa3rbvjphn7.apps.googleusercontent.com.json"
+script_directory = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__)
+OAUTH_SCOPES = ['https://www.googleapis.com/auth/webmasters.readonly']
+SEARCH_CONSOLE_API_NAME = 'searchconsole'
+SEARCH_CONSOLE_API_VERSION = 'v1'
+TOKEN_DIR = os.path.join(os.path.dirname(__file__), 'token')
 
-    credentials = service_account.Credentials.from_service_account_info(keyfile_dict, scopes=[OAUTH_SCOPE])
+TOKEN_PATH = os.path.join(TOKEN_DIR, 'token.json')
 
-    webmasters_service = build('searchconsole', 'v1', credentials=credentials)
+def setup_search_console_api():    
+    CLIENT_SECRETS_FILE = os.path.abspath(os.path.join(script_directory, refresh_secrets_file))
+    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, OAUTH_SCOPES)
+    credentials = obtain_or_refresh_credentials(flow)
+    webmasters_service = build(SEARCH_CONSOLE_API_NAME, SEARCH_CONSOLE_API_VERSION, credentials=credentials)
     return webmasters_service
+
+def obtain_or_refresh_credentials(flow):
+    if os.path.exists(TOKEN_PATH):
+        credentials = Credentials.from_authorized_user_file(TOKEN_PATH, OAUTH_SCOPES)
+    else:
+        credentials = flow.run_local_server(port=0)
+        save_credentials(credentials)
+    if credentials.expired and credentials.refresh_token:
+        credentials.refresh(Request())
+        save_credentials(credentials)
+    return credentials
+
+def save_credentials(credentials):
+    with open(TOKEN_PATH, 'w') as token_file:
+        token_file.write(credentials.to_json())   
+
 
 def fetch_search_console_data(webmasters_service):
     current_date = datetime.now().date()
