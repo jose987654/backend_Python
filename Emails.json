@@ -1,50 +1,12 @@
 [
   {
-    "id": 2,
-    "first_name": "first_name",
-    "last_name": "last_name",
-    "email": "wasswajose9@gmail.com",
-    "role": "user",
-    "password": "$2b$12$UUehhoyPj8mAfcE2Kv6xIudBO9U.7oGYpVOYJ7oDrwiQ13K5RAcKe",
-    "active": true,
-    "status": true
-  },
-  {
-    "id": 3,
-    "first_name": "jose",
-    "last_name": "wasswa",
-    "email": "123@gmail.com",
-    "role": "user",
-    "password": "$2b$12$qJtivIH3X4SwodUBI6c76u/IcXtcuwL43ovEMHubxbWl25TXq93/u",
-    "active": true
-  },
-  {
-    "id": 4,
-    "first_name": "jose",
-    "last_name": "wasswa",
-    "email": "1245@gmail.com",
-    "role": "user",
-    "password": "$2b$12$ziScC5RYw6NDtHARia7R9OCNKa7Yq2q4PHu/B8fFjP67JD5zwqYh2",
-    "active": false,
-    "status": false
-  },
-  {
-    "id": 5,
-    "first_name": "first_name",
-    "last_name": "last_name",
-    "email": "wasswajoseeq9@gmail.com",
-    "role": "user",
-    "password": "$2b$12$zDtHAvA3x1oZura1I4XfpeMt8rwuMhwm8y.2HfNlSWXtsEYOg.zle",
-    "active": true
-  },
-  {
-    "id": 5,
+    "id": 1,
     "first_name": "jose",
     "last_name": "wasswa",
     "email": "1234@gmail.comu",
     "role": "user",
-    "password": "$2b$12$b.r7xXDawB2VmZkP0SPxjuEugyJpeLDnqOhgMrehpqDoHoSsEh.DG",
-    "active": true,
+    "password": "$2b$12$MRwM/tyvsVFRkvuDG34lqOWKYQqQVwN.QIfw6itEelBUrbxSO/UsC",
+    "active": false,
     "status": true
   }
 ]

@@ -59,15 +59,31 @@ def save_credentials(credentials):
         token_file.write(credentials.to_json())   
 
 
-def fetch_search_console_data(webmasters_service):
+def fetch_search_console_data1(webmasters_service):
     current_date = datetime.now().date()
     start_date = (current_date - timedelta(days=2000)).isoformat()
     end_date = current_date.isoformat()
 
-    request = {
+    request1 = {
         'startDate': start_date,
         'endDate': end_date,
         'dimensions': ['date']
+    }
+
+    request = {
+        'startDate': start_date,
+        'endDate': end_date,
+        'dimensions': ['date', 'country', 'device'],  
+        # 'searchType': 'web',  # Use 'web' for web search data
+        # 'rowLimit': 1000,  # Adjust the row limit as needed
+        # 'aggregationType': 'auto',  # Use 'auto' for automatic aggregation
+        # 'dimensionFilterGroups': [
+        #     {
+        #         'filters': [
+        #             {'dimension': 'device', 'operator': 'equals', 'expression': 'MOBILE'}  # Add filter for mobile devices
+        #         ]
+        #     }
+        # ]
     }
 
     site_list = webmasters_service.sites().list().execute()
@@ -97,6 +113,68 @@ def fetch_search_console_data(webmasters_service):
             'site_info': site_info,
             'sitemap_path': sitemap_path,
             'search_analytics_data': search_analytics_data
+        }
+    else:
+        return {'error': 'No sites found'}
+
+
+
+def fetch_search_console_data(webmasters_service):
+    current_date = datetime.now().date()
+    start_date = (current_date - timedelta(days=2000)).isoformat()
+    end_date = current_date.isoformat()
+
+    # Request for search analytics
+    request_analytics = {
+        'startDate': start_date,
+        'endDate': end_date,
+        'dimensions': ['date'],
+        # Add other parameters as needed
+    }
+     
+    # Request for popular countries
+    request_countries = {
+        'startDate': start_date,
+        'endDate': end_date,
+        'dimensions': ['country'],
+        # Add other parameters as needed
+    }
+
+    site_list = webmasters_service.sites().list().execute()
+
+    if 'siteEntry' in site_list:
+        first_site = site_list['siteEntry'][0]
+        site_url = first_site['siteUrl']
+        permission_level = first_site['permissionLevel']
+
+        site_info = {'siteUrl': site_url, 'permissionLevel': permission_level}
+
+        sitemap_data = webmasters_service.sitemaps().list(siteUrl=site_url).execute()
+        first_sitemap = sitemap_data['sitemap'][0]
+        sitemap_path = first_sitemap['path']
+
+        # Fetch search analytics data
+        search_analytics_data = webmasters_service.searchanalytics().query(
+            siteUrl=site_url,
+            body=request_analytics
+        ).execute()
+
+        # Fetch popular countries data
+        popular_countries_data = webmasters_service.searchanalytics().query(
+            siteUrl=site_url,
+            body=request_countries
+        ).execute()
+
+        # site_errors = get_site_errors(webmasters_service, site_url)
+        # print("search data",search_analytics_data)
+        return {
+            'site_list': site_list,
+            'first_site': first_site,
+            # 'site_errors': site_errors,
+            'site_info': site_info,
+            'sitemap_path': sitemap_path,
+            'search_analytics_data': search_analytics_data,
+            'popular_countries_data': popular_countries_data
         }
     else:
         return {'error': 'No sites found'}
