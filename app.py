@@ -10,7 +10,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 import subprocess
 from google.ads.googleads.client import GoogleAdsClient
-from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
+from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID,load_or_refresh_client,generate_keyword_ideas
 from Email_clients import get_emails_json, delete_email,add_email_updated, delete_all_emails,delete_email_updated, update_email, add_emails,write_recipient_emails,read_recipient_emails,update_email_status_add,update_email_status_remove
 import datetime
 import os
@@ -46,6 +46,7 @@ os.makedirs(log_Folder, exist_ok=True)
 scheduler = BackgroundScheduler()
 current_interval = {"interval_seconds": 1000 * 60}
 executor = ThreadPoolExecutor()
+google_ads_client = load_or_refresh_client()
 all_recipients, recipient_emails = read_recipient_emails()
 # Set up the Google Search Console API client
 # search_console_service = setup_search_console_api("./local-env-404011-e776db327a1f.json")
@@ -183,8 +184,9 @@ def test_authentication():
 
 @app.route('/ad_data', methods=['GET'])
 @authenticate
-def new_route():
-    ad_data = get_Campaigns(GoogleAdsClient.load_from_storage(YAML_PATH), CUSTOMER_ID)
+def new_route():    
+    # ad_data = get_Campaigns(GoogleAdsClient.load_from_storage(YAML_PATH), CUSTOMER_ID)
+    ad_data = get_Campaigns(google_ads_client, CUSTOMER_ID)
     return jsonify(ad_data)
 
 @app.route('/get_emails', methods=['GET'])
@@ -322,7 +324,26 @@ def login():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-     
+
+@app.route('/generate_keywords', methods=['POST'])
+# @authenticate
+def generate_keywords():
+    try:
+        data = request.get_json()
+        # customer_id = data.get('customer_id')
+        keyword_texts = data.get('keyword_texts', [])
+        max_results = data.get('max_results', None)
+
+        # if not customer_id:
+        #     return jsonify({"error": "Customer ID is required"}), 400
+
+        result = generate_keyword_ideas(CUSTOMER_ID, keyword_texts, max_results)         
+
+        return jsonify({"keywords": result}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500 
+ 
 @app.route('/refresh', methods=['POST'])
 @authenticate
 def refresh():
@@ -382,6 +403,7 @@ def run_flask_app():
 def run_scheduler():
     global current_interval
     # Schedule the report email with a cron trigger for every Friday at a specific time (e.g., 10:00 AM)
+    # cron_expression = '0 17 * * 5'
     cron_expression = '0 17 * * *'   # Minute 0, hour 10, every day of the month, every month, only on Friday (day of week 5)
     scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(cron_expression))
        

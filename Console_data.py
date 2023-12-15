@@ -9,12 +9,13 @@ import smtplib
 from google.oauth2.credentials import Credentials
 from google.ads.googleads.client import GoogleAdsClient
 from email.mime.text import MIMEText
-from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID
+from get_Campaigns import get_Campaigns, YAML_PATH, CUSTOMER_ID,load_or_refresh_client
 import concurrent.futures
 from Email_clients import recipient_emails,all_recipients
 from google.auth.transport.requests import Request
 from flask import Flask, jsonify, redirect, request, session, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
+
 
 
 # def setup_search_console_api(client_secrets_file):
@@ -33,6 +34,7 @@ OAUTH_SCOPES = ['https://www.googleapis.com/auth/webmasters.readonly']
 SEARCH_CONSOLE_API_NAME = 'searchconsole'
 SEARCH_CONSOLE_API_VERSION = 'v1'
 TOKEN_DIR = os.path.join(os.path.dirname(__file__), 'token')
+google_ads_client = load_or_refresh_client()
 
 TOKEN_PATH = os.path.join(TOKEN_DIR, 'token.json')
 
@@ -288,11 +290,14 @@ def send_report_email_2(site_info, search_analytics_data,campaign_data):
 def schedule_report_email():
     
     # Set up the Search Console API
-    search_console_service = setup_search_console_api("./local-env-404011-e776db327a1f.json")
+    # search_console_service = setup_search_console_api("./local-env-404011-e776db327a1f.json")
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Submit tasks for concurrent execution
+        # search_console_future = executor.submit(fetch_search_console_data, search_console_service)
+        # campaign_fetch_future = executor.submit(get_Campaigns, GoogleAdsClient.load_from_storage(YAML_PATH), CUSTOMER_ID)
+        search_console_service = setup_search_console_api()
         search_console_future = executor.submit(fetch_search_console_data, search_console_service)
-        campaign_fetch_future = executor.submit(get_Campaigns, GoogleAdsClient.load_from_storage(YAML_PATH), CUSTOMER_ID)
+        campaign_fetch_future = executor.submit(get_Campaigns, google_ads_client, CUSTOMER_ID)
 
         # Wait for both tasks to complete
         search_console_data = search_console_future.result()
