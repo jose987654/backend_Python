@@ -15,8 +15,10 @@ from Email_clients import recipient_emails,all_recipients
 from google.auth.transport.requests import Request
 from flask import Flask, jsonify, redirect, request, session, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
-
-
+from reportlab.pdfgen import canvas
+from email.mime.multipart import MIMEMultipart
+# from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
 # def setup_search_console_api(client_secrets_file):
 #     script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +61,6 @@ def obtain_or_refresh_credentials(flow):
 def save_credentials(credentials):
     with open(TOKEN_PATH, 'w') as token_file:
         token_file.write(credentials.to_json())   
-
 
 def fetch_search_console_data1(webmasters_service):
     current_date = datetime.now().date()
@@ -118,8 +119,6 @@ def fetch_search_console_data1(webmasters_service):
         }
     else:
         return {'error': 'No sites found'}
-
-
 
 def fetch_search_console_data(webmasters_service):
     current_date = datetime.now().date()
@@ -181,14 +180,32 @@ def fetch_search_console_data(webmasters_service):
     else:
         return {'error': 'No sites found'}
 
+# def get_site_errors(webmasters_service, site_url):
+#     # search_console_service = setup_search_console_api() .urlcrawlerrors().query(siteUrl=site_url, category='serverError')
+#     # request = webmasters_service.urlcrawlerrors().query(siteUrl=site_url)
+#     request = webmasters_service.urlcrawlerrors().query(siteUrl=site_url, category='serverError')
+#     try:
+#         response = request.execute()
+#         return response
+#     except Exception as e:
+#         print(f"Error fetching site errors: {e}")
+#         return None
 def get_site_errors(webmasters_service, site_url):
-    request = webmasters_service.urlcrawlerrorscounts().query(siteUrl=site_url)
     try:
+        # Use the Search Console API to fetch site errors
+        print(f"this works ")
+        request = webmasters_service.urlcrawlerrors().query(siteUrl=site_url, category='serverError')
         response = request.execute()
-        return response
+
+        if 'urlCrawlErrorCountsPerType' in response:
+            return response['urlCrawlErrorCountsPerType']
+        else:
+            print("No error data found.")
+            return {}
     except Exception as e:
         print(f"Error fetching site errors: {e}")
         return None
+    
 
 def fetch_search_console_errors(webmasters_service):
     current_date = datetime.now().date()
@@ -214,9 +231,9 @@ def fetch_search_console_errors(webmasters_service):
                     'dimensions': ['date']
                 }
 
-                errors_data = webmasters_service.urlcrawlerrorscounts().query(siteUrl=site_url, startDate=start_date, endDate=end_date, dimensions=['date']).execute()
-
-                # Process and print the errors data
+                # errors_data = webmasters_service.urlcrawlerrorscounts().query(siteUrl=site_url, startDate=start_date, endDate=end_date, dimensions=['date']).execute()
+                errors_data = webmasters_service.urlcrawlerrors().list(siteUrl=site_url, category='serverError')
+                # Process and print the errors data webmasters_service.urlcrawlerrors().query(siteUrl=site_url, category='serverError')
                 print(f"Site: {site_url}")
                 print("Errors Data:", errors_data)
                 print("\n")
@@ -226,6 +243,62 @@ def fetch_search_console_errors(webmasters_service):
     except Exception as e:
         print(f"Error fetching search console errors: {e}")
 
+def generate_pdf(site_info, search_analytics_data, campaign_data, pdf_filepath):
+    # Create the directory if it doesn't exist
+    os.makedirs(os.path.dirname(pdf_filepath), exist_ok=True)
+    # print("campaigns ",campaign_data)
+    # Create a PDF file with the provided information
+    with open(pdf_filepath, 'wb') as pdf_file:
+        c = canvas.Canvas(pdf_file)
+        
+        # Title
+        c.setFont("Helvetica", 16)
+        c.drawString(72, 800, "Search Console Report and Ads Campaigns")
+        
+        # Site URL
+        c.setFont("Helvetica", 12)
+        c.drawString(72, 780, f"Site URL: {site_info['siteUrl']}")
+
+         # Campaign Data
+        c.drawString(72, 740, "Campaign Data:")
+        text_object = c.beginText(72, 720)
+        text_object.setFont("Helvetica", 12)
+        campaigns = campaign_data.get('campaigns', [])  # Access the 'campaigns' key
+        for campaign in campaigns:
+            if 'id' in campaign and 'name' in campaign:
+                text_object.textLine(f"ID: {campaign['id']}, Name: {campaign['name']}")
+            else:
+                text_object.textLine("Invalid campaign structure")
+
+        c.drawText(text_object)       
+        
+        # c.showPage()
+        # Search Analytics Data
+        c.drawString(72, 680, "Search Analytics Data:")
+        text_object = c.beginText(72, 660)
+        text_object.setFont("Helvetica", 12)
+        # Display all key-value pairs in vertical format
+        # for key, value in search_analytics_data.items():
+        #     text_object.textLine(f"{key}: {value}")
+        # Debug prints
+        # print("Rows:", search_analytics_data.get('rows', []))
+        # Display each row in vertical format
+        rows = search_analytics_data.get('rows', [])  # Access the 'rows' key
+        for row in rows:
+            # print("Row:", row)
+            # if text_object.getY() < 200:
+            #     c.showPage()
+            #     # Adjust y-coordinate for the new page
+            #     text_object = c.beginText(72, 740)
+                # text_object.setTextOrigin(72, 740)
+            text_object.textLine(f"Date: {row['keys'][0]}, Clicks: {row['clicks']}, Impressions: {row['impressions']}, CTR: {row['ctr']}")
+
+        response_aggregation_type = search_analytics_data.get('responseAggregationType', '')
+        text_object.textLine(f"Response Aggregation Type: {response_aggregation_type}")
+
+        c.drawText(text_object)  
+        c.save()   
+       
 
 def send_report_email(site_info, search_analytics_data):
    
@@ -252,10 +325,13 @@ def send_report_email(site_info, search_analytics_data):
         server.sendmail(smtp_username, recipient_emails, msg.as_string())
 
 def send_report_email_2(site_info, search_analytics_data,campaign_data):
+#    pdf_filepath = '/path/to/temp_report.pdf'
+    pdf_filepath = './temp_report.pdf'
+    generate_pdf(site_info, search_analytics_data, campaign_data, pdf_filepath)
    
-   for entry in all_recipients:
-    if 'status' not in entry:
-        entry['status'] = False
+    for entry in all_recipients:
+        if 'status' not in entry:
+            entry['status'] = False
 
     # Now, use the list comprehension to get active recipient emails
     active_recipient_emails = [
@@ -268,7 +344,7 @@ def send_report_email_2(site_info, search_analytics_data,campaign_data):
         return
     # print("sending email ")
     # print("Email body ",site_info, search_analytics_data)
-    email_content = f"Search Console Report\n\nSite URL: {site_info['siteUrl']}\n\nSearch Analytics Data: {search_analytics_data}\n\nCampaign Data :{campaign_data}"
+    # email_content = f"Search Console Report\n\nSite URL: {site_info['siteUrl']}\n\nSearch Analytics Data: \n\nCampaign Data :{campaign_data}"
 
     # Replace these variables with your email server and credentials
     smtp_server = 'smtp.gmail.com'
@@ -277,15 +353,26 @@ def send_report_email_2(site_info, search_analytics_data,campaign_data):
     smtp_password = 'yqma mkrv xtxq icrj'
    
     # Create and send the email
-    msg = MIMEText(email_content)
+    # msg = MIMEText(email_content)
+    msg = MIMEMultipart()
     msg['Subject'] = 'Search API Report'
     msg['From'] = smtp_username
     msg['To'] = ', '.join(active_recipient_emails)
+
+    with open(pdf_filepath, 'rb') as file:
+        attach = MIMEApplication(file.read(), _subtype="pdf")
+        attach.add_header('Content-Disposition', 'attachment', filename=os.path.basename(pdf_filepath))
+        msg.attach(attach)
+
+    email_content = f"Search Console Report\n\nSite URL: {site_info['siteUrl']}\n\nSearch Analytics Data: \n\nCampaign Data: {campaign_data}"
+    msg.attach(MIMEText(email_content, 'plain'))
 
     with smtplib.SMTP(smtp_server, smtp_port) as server:
         server.starttls()
         server.login(smtp_username, smtp_password)
         server.sendmail(smtp_username, active_recipient_emails, msg.as_string())
+    
+    os.remove(pdf_filepath)
 
 def schedule_report_email():
     

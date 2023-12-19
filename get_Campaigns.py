@@ -109,6 +109,19 @@ def generate_credentials():
         print(f"Error generating credentials: {e}")
         return None
 
+def get_country_names(client, geo_target_constants):
+    country_names = []
+    geo_target_service = client.get_service("GeoTargetConstantService")
+
+    for geo_target in geo_target_constants:
+        geo_target_request = client.get_type("GetGeoTargetConstantRequest")
+        geo_target_request.locale = "en"
+        geo_target_request.country_code = geo_target.name
+        country_response = geo_target_service.get_geo_target_constant(geo_target_request)
+        country_names.append(country_response.names[0].name)
+
+    return country_names
+
 def generate_keyword_ideas(customer_id,  keyword_texts=None, max_results=None):
     client = load_or_refresh_client()
     page_url=None
@@ -134,10 +147,14 @@ def generate_keyword_ideas(customer_id,  keyword_texts=None, max_results=None):
     # Iterate over the results and stop after reaching max_results1
     for i, idea in enumerate(keyword_ideas):
         competition_value = idea.keyword_idea_metrics.competition.name
+        # country_names = [geo_target.name for geo_target in idea.keyword_idea_metrics.geo_target_constants]
+        # country_names = get_country_names(client, idea.keyword_idea_metrics.geo_target_constants)
+        print("country", idea.keyword_idea_metrics.geo_target_constants)
         result = {
             "text": idea.text,
             "avg_monthly_searches": idea.keyword_idea_metrics.avg_monthly_searches,
-            "competition": competition_value
+            "competition": competition_value,
+            # "countries": country_names        
         }
         results_list.append(result)
         # print(
@@ -158,12 +175,12 @@ def generate_keyword_ideas(customer_id,  keyword_texts=None, max_results=None):
         return {'error': 'No keywords found'}
         # sys.exit(1)
     
-# if __name__ == "__main__":
-#     try:
-#         generate_keyword_ideas(CUSTOMER_ID, keyword_texts=['torrents', 'seedr'],max_results=4)
-#     except Exception as ex:
-#         print(f"An error occurred: {ex}")
-#         sys.exit(1)
+if __name__ == "__main__":
+    try:
+        generate_keyword_ideas(CUSTOMER_ID, keyword_texts=['torrents', 'seedr'],max_results=4)
+    except Exception as ex:
+        print(f"An error occurred: {ex}")
+        sys.exit(1)
 
 # if __name__ == "__main__":
     # Set the path to your YAML configuration file

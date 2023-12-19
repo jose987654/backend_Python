@@ -42,9 +42,11 @@ os.makedirs(log_Folder, exist_ok=True)
 # file_log_handler = RotatingFileHandler(log_Folder, maxBytes=10000, backupCount=1)
 # file_log_handler.setFormatter(formatter)
 # app_logger.addHandler(file_log_handler)
+# CERT_PATH = '/etc/letsencrypt/live/jon.seedr.dev/cert.pem'
+# KEY_PATH = '/etc/letsencrypt/live/jon.seedr.dev/privkey.pem'
 
 scheduler = BackgroundScheduler()
-current_interval = {"interval_seconds": 1000 * 60}
+current_interval = {"interval_seconds": 1 * 60}
 executor = ThreadPoolExecutor()
 google_ads_client = load_or_refresh_client()
 all_recipients, recipient_emails = read_recipient_emails()
@@ -396,7 +398,7 @@ def run_flask_app():
     # Run the Flask app without the reloaderresult = {'message': 'This is a new route with additional functionality!'}
 
     # app.run(debug=True, use_reloader=False)
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=5000,debug=True, use_reloader=False)
     # from waitress import serve
     # serve(app, host='0.0.0.0', port=5000)
 
@@ -404,16 +406,16 @@ def run_scheduler():
     global current_interval
     # Schedule the report email with a cron trigger for every Friday at a specific time (e.g., 10:00 AM)
     # cron_expression = '0 17 * * 5'
-    cron_expression = '0 17 * * *'   # Minute 0, hour 10, every day of the month, every month, only on Friday (day of week 5)
-    scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(cron_expression))
+    # cron_expression = '0 17 * * *'   # Minute 0, hour 10, every day of the month, every month, only on Friday (day of week 5)
+    # scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(cron_expression))
        
-    # if 'interval_seconds' in current_interval:
-    #     scheduler.add_job(schedule_report_email, 'interval', seconds=current_interval['interval_seconds'])
-    # elif 'cron_expression' in current_interval:
-    #     scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(current_interval['cron_expression']))
-    # else:
-    #     # Use a default interval if none specified
-    #     scheduler.add_job(schedule_report_email, 'interval', seconds= 11 * 60)
+    if 'interval_seconds' in current_interval:
+        scheduler.add_job(schedule_report_email, 'interval', seconds=current_interval['interval_seconds'])
+    elif 'cron_expression' in current_interval:
+        scheduler.add_job(schedule_report_email, trigger=cron.CronTrigger.from_crontab(current_interval['cron_expression']))
+    else:
+        # Use a default interval if none specified
+        scheduler.add_job(schedule_report_email, 'interval', seconds= 11 * 60)
 
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())

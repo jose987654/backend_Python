@@ -3,10 +3,20 @@
     "id": 1,
     "first_name": "jose",
     "last_name": "wasswa",
-    "email": "1234@gmail.comu",
+    "email": "1234h@gmail.comu",
     "role": "user",
     "password": "$2b$12$MRwM/tyvsVFRkvuDG34lqOWKYQqQVwN.QIfw6itEelBUrbxSO/UsC",
     "active": false,
+    "status": false
+  },
+  {
+    "id": 2,
+    "first_name": "jose",
+    "last_name": "wasswa",
+    "email": "wasswajose9@gmail.com",
+    "role": "user",
+    "password": "$2b$12$AZwnBbuIQ3nzSxjpOROGeebdSYgYHqjyatEXml3Qtg1qFuXoN8iUy",
+    "active": true,
     "status": true
   }
 ]
